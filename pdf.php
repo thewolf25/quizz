@@ -1,8 +1,23 @@
 <?php
+include_once "./wp-includes/php/cnx.php";
 include_once './dompdf/autoload.inc.php';
 include_once './dompdf/src/Dompdf.php';
 // Reference the Dompdf namespace 
 use Dompdf\Dompdf;
+
+if(!isset($_SESSION)){
+
+    session_start();
+
+}
+if(isset($_SESSION['index_medecin'])){
+    $request = "SELECT * from medecin where index_medecin =".$_SESSION['index_medecin'];
+    if(mysqli_query($con,$request)){
+        $medecin = mysqli_fetch_row(mysqli_query($con,$request));
+    }
+}
+
+$nom_complet= $medecin[1] . " ". $medecin[2];
 function dateToFrench($date, $format) 
 {
     $english_days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
@@ -27,7 +42,7 @@ $html='<html>
 <div style="border: 5px solid blue;width:90%;margin:auto;min-height:1000px;" >
     <div style="text-align:center;margin-top:30%;padding-bottom:30%;">
     <img src="wp-includes/themes/images/logo-alfasigma-2.png" width="70%"  >
-    <h1>Nom du delege</h1>
+    <h1>'.$nom_complet.'</h1>
     <div style="margin-top:10%;">
         Training<br>
         pharmacovigilance Mai<br>
@@ -48,7 +63,5 @@ $dompdf->loadHtml($html);
 $dompdf->setPaper('A4', 'protrait'); 
 $dompdf->render();
 $output = $dompdf->output();
-$path="./pdf/test.pdf";
-
-
+$path="./pdf/".$nom_complet."_".$current_time.".pdf";
 file_put_contents($path, $output);
